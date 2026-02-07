@@ -1,0 +1,30 @@
+# ASR Demo for Disordered Speech - Docker Compose
+#
+# Usage:
+#   docker-compose up --build    # Build and start
+#   docker-compose up -d         # Start in background
+#   docker-compose down          # Stop and remove
+
+version: '3.8'
+
+services:
+  asr-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: asr-disordered-speech
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount data directory for persistent storage (optional)
+      - ./data:/app/data:ro
+    environment:
+      - STREAMLIT_SERVER_MAX_UPLOAD_SIZE=10
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

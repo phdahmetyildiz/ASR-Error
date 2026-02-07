@@ -1,0 +1,224 @@
+# Requirements Analysis for Project 3: Simple ASR Demo for Disordered Speech with Error Analysis
+
+## 1. Introduction
+### Project Overview
+This project involves developing a web-based application that demonstrates Automatic Speech Recognition (ASR) capabilities specifically tailored for disordered speech (e.g., conditions like Dysarthria or Alzheimer's-related speech impairments). The app will allow users to upload audio files, transcribe them using a pre-trained ASR model from Hugging Face, compare the transcription against a provided ground truth text, perform error analysis (e.g., highlighting asymmetric errors), compute relevant metrics (e.g., Word Error Rate - WER, speech rate), and export results as JSON. 
+
+The application will use Streamlit for the user interface, making it interactive and easy to deploy. A minimal fine-tuning of the ASR model on a small public dataset (e.g., TORGO or UASpeech) will be included to improve performance on disordered speech. This project aims to showcase Python programming skills, familiarity with ASR pipelines, and an understanding of speech pathology indicators, filling a gap in open-source tools for analyzing disordered speech errors.
+
+### Objectives
+- Demonstrate end-to-end ASR processing.
+- Provide error analysis to identify patterns indicative of speech disorders.
+- Enable users to visualize and export analysis results.
+- Ensure the project is modular, extensible, and well-documented for GitHub hosting.
+
+### Assumptions and Constraints
+- Users have basic Python knowledge for local setup.
+- Audio inputs are in WAV or MP3 format, mono-channel, sampled at 16kHz (common for ASR models).
+- Fine-tuning uses a small subset of public datasets to avoid computational overhead.
+- No real-time processing; focus on batch/upload-based analysis.
+- Deployment: Local via Streamlit; optional cloud hosting (e.g., Streamlit Sharing).
+- Constraints: No GPU required (use CPU-friendly models); keep dependencies minimal.
+
+## 2. Stakeholders and Use Cases
+### Stakeholders
+- Developer/User: An informatics professional building a portfolio project.
+- End Users: Researchers in speech pathology, clinicians, or students testing ASR on disordered speech samples.
+- Community: GitHub contributors interested in ASR for health applications.
+
+### Key Use Cases
+1. **Upload and Transcribe Audio**: User uploads an audio file, app transcribes it using ASR.
+2. **Provide Ground Truth**: User inputs or uploads a reference text for comparison.
+3. **Perform Error Analysis**: App computes WER, highlights errors (e.g., insertions, deletions, substitutions), and identifies asymmetric patterns (e.g., higher errors in consonants for Dysarthria).
+4. **Compute Health Indicators**: Calculate metrics like speech rate (words per minute), pause duration, or prosody variations.
+5. **Visualize and Export**: Display results in the UI (tables/charts) and allow JSON export.
+6. **Fine-Tune Model (Optional Demo)**: Show a script for minimal fine-tuning on a dataset.
+
+## 3. Functional Requirements
+### FR1: Audio Upload and Preprocessing
+- The app shall allow users to upload audio files (WAV/MP3).
+- Preprocess audio: Convert to mono, resample to 16kHz, normalize volume.
+- Handle file sizes up to 10MB.
+
+### FR2: ASR Transcription
+- Use a pre-trained Hugging Face model (e.g., facebook/wav2vec2-base-960h or a speech-to-text model fine-tuned for English).
+- Transcribe the audio into text.
+- Support English language initially; extensible to others.
+
+### FR3: Ground Truth Input
+- Provide a text input field for manual entry of ground truth transcription.
+- Optional: Upload a TXT file for ground truth.
+
+### FR4: Error Analysis
+- Compute Word Error Rate (WER) using JiWER library.
+- Perform detailed error breakdown: Substitutions, insertions, deletions.
+- Highlight asymmetric errors (e.g., via color-coded diff: green for matches, red for mismatches).
+- Identify patterns relevant to disorders (e.g., higher errors in fricatives for Dysarthria, based on simple rule-based checks).
+
+### FR5: Health Indicator Metrics
+- Calculate speech rate: Words in transcription divided by audio duration.
+- Measure pause durations using silence detection (e.g., via Librosa).
+- Optional: Basic prosody features like pitch variation.
+
+### FR6: Visualization
+- Display transcription, ground truth, and diff in a side-by-side view.
+- Show metrics in a table (e.g., WER, speech rate).
+- Use charts (e.g., Matplotlib/Streamlit charts) for error distribution.
+
+### FR7: Export Results
+- Generate a JSON file with: Transcription, ground truth, WER, errors breakdown, metrics.
+- Allow download via Streamlit button.
+
+
+## 4. Non-Functional Requirements
+### NFR1: Performance
+- Transcription time: <10 seconds for 30-second audio on CPU.
+- App responsiveness: Load in <5 seconds.
+- Scalability: Handle single-user sessions; not production-scale.
+
+### NFR2: Usability
+- Intuitive UI: Clear labels, tooltips for technical terms.
+- Accessibility: Support keyboard navigation; alt text for visuals.
+- Error Handling: Graceful handling of invalid audio (e.g., non-speech files) with user-friendly messages.
+
+### NFR3: Security and Privacy
+- Process data locally; no cloud uploads.
+- Warn users about sensitive health data (e.g., anonymize samples).
+- No storage of uploaded files beyond session.
+
+### NFR4: Technical
+- Language: Python 3.8+.
+- Dependencies: Streamlit, HuggingFace Transformers, Torchaudio, Librosa, JiWER, Pandas, Matplotlib.
+- Compatibility: Run on Windows/Linux/Mac.
+- Documentation: README.md with setup, usage, and contribution guidelines.
+
+### NFR5: Maintainability
+- Modular code: Separate modules for preprocessing, ASR, analysis, UI.
+- Version Control: Use Git for repository.
+- Testing: Basic unit tests for core functions (e.g., using pytest).
+
+## 5. System Architecture
+### High-Level Design
+- **Frontend**: Streamlit app for UI (file upload, text input, buttons, displays).
+- **Backend**:
+  - Audio Processor: Librosa/Torchaudio for preprocessing.
+  - ASR Engine: Hugging Face pipeline for transcription.
+  - Analysis Module: JiWER for WER; custom functions for metrics and patterns.
+  - Exporter: JSON serialization with Python's json library.
+- **Data Flow**:
+  1. User uploads audio → Preprocess → ASR Transcribe.
+  2. User inputs ground truth → Compare → Analyze errors/metrics.
+  3. Display results → Export JSON.
+
+### Components and Interfaces
+- **Modules**:
+  - `app.py`: Main Streamlit script.
+  - `asr_utils.py`: ASR transcription and fine-tuning functions.
+  - `analysis_utils.py`: Error and metric calculations.
+  - `preprocess.py`: Audio handling.
+- **External APIs/Libraries**: Hugging Face Hub for model downloads.
+
+## 6. Step-by-Step Implementation Guide
+Follow these steps to implement the project. Each step includes estimated time, prerequisites, and code snippets/examples.
+
+### Step 1: Setup Environment (1-2 hours)
+- Create a new GitHub repository (e.g., "asr-disordered-speech-demo").
+- Install Python 3.10+ and virtualenv.
+- Create and activate venv: `python -m venv env; source env/bin/activate`.
+- Install dependencies: `pip install streamlit transformers torchaudio librosa jiwer pandas matplotlib`.
+- Initialize Git: `git init; git add .; git commit -m "Initial setup"`.
+- Add README.md with project description.
+
+### Step 2: Implement Audio Preprocessing (2-3 hours)
+- Create `preprocess.py`.
+- Function: `preprocess_audio(file_path)` – Load audio, resample, normalize.
+- Example Code:
+  ```python
+  import librosa
+  import soundfile as sf
+
+  def preprocess_audio(file_path, target_sr=16000):
+      audio, sr = librosa.load(file_path, sr=None)
+      if sr != target_sr:
+          audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sr)
+      audio = librosa.util.normalize(audio)  # Normalize volume
+      processed_path = "processed.wav"
+      sf.write(processed_path, audio, target_sr)
+      return processed_path, len(audio) / target_sr  # Return path and duration
+  ```
+- Test: Upload a sample audio and check output.
+
+### Step 3: Integrate ASR Transcription (3-4 hours)
+- Create `asr_utils.py`.
+- Use Hugging Face pipeline.
+- Function: `transcribe_audio(audio_path)`.
+- Example Code:
+  ```python
+  from transformers import pipeline
+
+  def transcribe_audio(audio_path):
+      asr = pipeline("automatic-speech-recognition", model="facebook/wav2vec2-base-960h")
+      transcription = asr(audio_path)["text"]
+      return transcription
+  ```
+- Handle exceptions for model loading.
+
+### Step 4: Implement Error Analysis and Metrics (4-5 hours)
+- Create `analysis_utils.py`.
+- Functions: `compute_wer(ground_truth, transcription)`, `error_breakdown()`, `compute_speech_rate(transcription, duration)`, `detect_pauses(audio)`.
+- Example Code for WER:
+  ```python
+  from jiwer import wer, compute_measures
+
+  def compute_wer(ground_truth, transcription):
+      error_rate = wer(ground_truth, transcription)
+      measures = compute_measures(ground_truth, transcription)  # Sub, Ins, Del
+      return error_rate, measures
+
+  def compute_speech_rate(transcription, duration):
+      words = len(transcription.split())
+      return words / (duration / 60) if duration > 0 else 0  # Words per minute
+  ```
+- For patterns: Simple regex or rule-based checks (e.g., count consonant errors).
+
+### Step 5: Build Streamlit UI (4-6 hours)
+- Create `app.py`.
+- Structure: Sidebar for uploads/inputs, main area for results.
+- Example Code Skeleton:
+  ```python
+  import streamlit as st
+  from preprocess import preprocess_audio
+  from asr_utils import transcribe_audio
+  from analysis_utils import compute_wer, compute_speech_rate
+  import json
+
+  st.title("ASR Demo for Disordered Speech")
+  audio_file = st.file_uploader("Upload Audio", type=["wav", "mp3"])
+  ground_truth = st.text_area("Enter Ground Truth Text")
+
+  if audio_file and ground_truth:
+      processed_path, duration = preprocess_audio(audio_file.name)  # Save uploaded file first
+      transcription = transcribe_audio(processed_path)
+      wer, measures = compute_wer(ground_truth, transcription)
+      speech_rate = compute_speech_rate(transcription, duration)
+
+      st.write("Transcription:", transcription)
+      st.write("WER:", wer)
+      st.table(measures)  # Display breakdown
+
+      results = {"transcription": transcription, "wer": wer, "speech_rate": speech_rate}
+      st.download_button("Export JSON", data=json.dumps(results), file_name="results.json")
+  ```
+
+
+
+### Step 7: Testing and Documentation (2-3 hours)
+- Test end-to-end with sample disordered speech audio (public sources).
+- Add unit tests: `pip install pytest; pytest`.
+- Update README: Installation, run `streamlit run app.py`, examples.
+- Push to GitHub.
+
+### Step 8: Deployment and Polish (1-2 hours)
+- Optional: Deploy to Streamlit Sharing.
+- Add CSS for better UI.
+- Ensure ethical notes in README (e.g., not for clinical use).
