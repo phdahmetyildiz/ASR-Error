@@ -1,4 +1,4 @@
-# Requirements Analysis for Project 3: Simple ASR Demo for Disordered Speech with Error Analysis
+# Requirements Analysis for Project 3: Simple ASR Demo for Disordered Speech with Error Analysis (generated with Grok)
 
 ## 1. Introduction
 ### Project Overview
